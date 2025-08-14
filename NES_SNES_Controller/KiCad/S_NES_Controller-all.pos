@@ -1,0 +1,43 @@
+### Footprint positions - created on 2025-08-11T11:22:17-0400 ###
+### Printed by KiCad version 9.0.3
+## Unit = mm, Angle = deg.
+## Side : All
+# Ref     Val                  Package                                           PosX       PosY       Rot  Side
+G***      LOGO                 pcb_way_logo                                   23.4250    46.8750  180.0000  bottom
+C1        1uF                  C_0805_2012Metric_Pad1.18x1.45mm_HandSolder     4.4000    31.8674  -90.0000  top
+C2        10uF                 C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    22.7872    17.1814  180.0000  top
+C3        10nF                 C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    40.7750    12.0050   90.0000  top
+C4        1uF                  C_0805_2012Metric_Pad1.18x1.45mm_HandSolder     4.3498    16.1170  -90.0000  top
+J1        Conn_01x05           JST_XH_S5B-XH-A_1x05_P2.50mm_Horizontal        28.6010    41.9228  180.0000  top
+J2        Conn_02x10_Odd_Even  PinHeader_2x10_P2.54mm_Horizontal              35.0900     4.7250  -90.0000  top
+J3        Conn_01x03           PinHeader_1x03_P2.54mm_Vertical                38.8082    30.8720  -90.0000  top
+J4        Conn_01x02           PinHeader_1x02_P2.54mm_Vertical                34.9330    41.9310   90.0000  top
+J5        Conn_01x02           PinHeader_1x02_P2.54mm_Vertical                45.1830    41.9318  -90.0000  top
+Q1        MMBT3904             SOT-23                                         42.4718    16.9856    0.0000  top
+Q2        MMBT3906             SOT-23                                         42.4210    24.1462    0.0000  top
+R1        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder     6.6598    23.0734  -90.0000  top
+R2        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    10.7830    23.0522  -90.0000  top
+R3        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    10.7786     9.6036   90.0000  top
+R4        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    14.8278     9.6166   90.0000  top
+R5        100r                 R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    26.0990    37.1776   90.0000  top
+R6        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder     6.7076     9.6668   90.0000  top
+R7        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder     8.7200    23.0492  -90.0000  top
+R8        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder     8.7388     9.6286   90.0000  top
+R9        47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    12.8252     9.6028   90.0000  top
+R10       100r                 R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    23.5968    37.1218   90.0000  top
+R11       100r                 R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    21.1330    37.1476   90.0000  top
+R12       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    38.7360    12.0274   90.0000  top
+R13       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    12.3440    39.0756  -90.0000  top
+R14       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    14.5456    39.0744  -90.0000  top
+R15       1K                   R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    42.0486    19.9510    0.0000  top
+R16       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    39.3946    16.9426  -90.0000  top
+R17       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    39.5014    24.1546   90.0000  top
+R18       1K                   R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    42.0362    27.0938    0.0000  top
+R19       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder     6.0234    39.1086  -90.0000  top
+R20       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    10.1854    39.1086  -90.0000  top
+R21       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    12.8742    23.0558  -90.0000  top
+R22       47K                  R_0805_2012Metric_Pad1.20x1.40mm_HandSolder     8.0954    39.1086  -90.0000  top
+U1        CD4021               SOIC-16_3.9x9.9mm_P1.27mm                      10.7740    16.2194   90.0000  top
+U2        MCP23S17_SO          SOIC-28W_7.5x17.9mm_P1.27mm                    31.0750    19.2000    0.0000  top
+U3        CD4021               SOIC-16_3.9x9.9mm_P1.27mm                      10.7918    31.8802   90.0000  top
+## End
