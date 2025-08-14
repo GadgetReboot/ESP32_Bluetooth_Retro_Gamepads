@@ -1,17 +1,23 @@
-/*.  Header fill in later
+/*  Converts PS4 buttons into GPIO expander controls that interface with retro game consoles NES, SNES, TG16
+    ESP32 module is expected to be installed on this breakout board: https://github.com/GadgetReboot/ESP32_5V_Dev_Board
 
-     Requires installing bluepad32  board support
+     Requires Adafruit MCP23X17 library for GPIO expander
+     Requires installing bluepad32 board support https://bluepad32.readthedocs.io/en/latest/plat_arduino/
 
      In the tools/board menu to choose which module to program, 
-     choose board type DOIT ESP32 DEV KIT V1  from the list of boards in esp32_bluepad32 
+     choose board type DOIT ESP32 DEV KIT V1  from the list of boards within the esp32_bluepad32 board selections 
 
+     Tested with Arduino IDE v2.3.4
+                 esp32_bluepad32 board support v4.1.0
+                 Adafruit MCP23017 library v2.3.2                 
+
+Gadget Reboot
 */
-
-
 
 #include <Bluepad32.h>
 #include <Adafruit_MCP23X17.h>
 
+// SPI pins on ESP32 to control GPIO expander
 #define CS_PIN 13
 #define SPI_MOSI 23
 #define SPI_MISO 19
@@ -26,9 +32,9 @@ enum consoleList { NES = 0,
                    TG16 = 1,
                    SNES = 2,
                    UNDEFINED = 7 };
-consoleList consoleType = UNDEFINED;  // default to undefined plug in board until checked
+consoleList consoleType = UNDEFINED;  // default to undefined plug in board until one is detected
 
-// plug in card ID detect inputs
+// plug in card ID detect ESP32 inputs
 // these are pulled high by default and can be driven low by plug in cards
 // to indicate what type of retro controller interface is in use
 const byte ID0 = 34;
@@ -83,14 +89,11 @@ void setup() {
       ;
   }
 
-  // set each GPIO expander output high and configure as outputs
+  // set each GPIO expander output high (indicating no retro controller buttons are pressed)
+  // and configure as outputs
   for (int i = 0; i <= 15; i++) {
     mcp.digitalWrite(i, 1);
     mcp.pinMode(i, OUTPUT);
-  }
-  // debug set spare GPIO low for testing
-  for (int i = 0; i <= 7; i++) {
-    mcp.digitalWrite(i, 0);
   }
 
   // Setup the Bluepad32 callbacks
@@ -150,8 +153,7 @@ void onDisconnectedController(ControllerPtr ctl) {
   }
 }
 
-// ========= SEE CONTROLLER VALUES IN SERIAL MONITOR ========= //
-
+// show bluetooth controller data in serial monitor
 void dumpGamepad(ControllerPtr ctl) {
   Serial.printf(
     "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
@@ -175,8 +177,7 @@ void dumpGamepad(ControllerPtr ctl) {
   );
 }
 
-// ========= GAME CONTROLLER ACTIONS SECTION ========= //
-
+// set retro controller GPIO pins based on bluetooth controller data
 void processGamepad(ControllerPtr ctl) {
 
   // debug serial output
@@ -188,9 +189,11 @@ void processGamepad(ControllerPtr ctl) {
   // PS4 ctl->buttons() bits [0..3] are Cross, Circle, Square, Triangle
 
   // temporary registers to translate wireless controller button states to retro gamepad button states
+  // default to all 1's (no retro input buttons pressed) and overwrite as 0 if needed
   byte gpioPortA = 0xFF;
   byte gpioPortB = 0xFF;
 
+  // set the GPIO outputs based on what type of retro controller is in use
   switch (consoleType) {
     case NES:
       // gpio are set based on the inverted state of wireless controller data since output buttons are active low
@@ -203,18 +206,12 @@ void processGamepad(ControllerPtr ctl) {
       bitWrite(gpioPortB, 6, !bitRead(ctl->buttons(), 0));  // NES B button is wireless controller Cross
       bitWrite(gpioPortB, 7, !bitRead(ctl->buttons(), 1));  // NES A button is wireless controller Circle
 
-      //           bitWrite(gpioPortB, 4, !bitRead(ctl->buttons(), 3));  // NES Start is wireless controller Triangle
-      //      bitWrite(gpioPortB, 5, !bitRead(ctl->buttons(), 2));  // NES Select is wireless controller Square
-
       // write gamepad button states to gpio expander
-      //mcp.writeGPIOA(gpioPortA);
       mcp.writeGPIOB(gpioPortB);
 
-
       // debug printout
-      Serial.print("GPIO B Port: ");
-      Serial.println(gpioPortB, BIN);
-
+      // Serial.print("GPIO B Port: ");
+      // Serial.println(gpioPortB, BIN);
 
       // if R3 stick button is pressed, switch to SNES mode
       if (bitRead(ctl->buttons(), 9)) {
@@ -234,15 +231,12 @@ void processGamepad(ControllerPtr ctl) {
       bitWrite(gpioPortB, 6, !bitRead(ctl->buttons(), 3));  // TG16 Run is wireless controller Triangle
       bitWrite(gpioPortB, 7, !bitRead(ctl->dpad(), 3));     // TG16 dpad Left is wireless controller dpad Left
 
-      mcp.writeGPIOB(gpioPortB);         // write gamepad button states to gpio expander port
-      mcp.writeGPIOA(0xFF - gpioPortB);  // debug copy on spare GPIO, all bits flipped for active high LEDs
+      mcp.writeGPIOB(gpioPortB);  // write gamepad button states to gpio expander port
 
       /*. // debug output
       Serial.print("GPIO B Port: ");
       Serial.print(gpioPortB, BIN);
-      Serial.print(". LED Port: ");
-      Serial.println(0xFF - gpioPortB, BIN);
-*/
+      */
       break;
 
     case SNES:
@@ -271,7 +265,7 @@ void processGamepad(ControllerPtr ctl) {
       Serial.print(gpioPortB, BIN);
       Serial.print(" GPIO A Port: ");
       Serial.println(gpioPortA, BIN);
-*/
+      */
 
       // if L3 stick button is pressed, switch to SNES mode
       if (bitRead(ctl->buttons(), 8)) {
@@ -282,167 +276,11 @@ void processGamepad(ControllerPtr ctl) {
 
     case UNDEFINED:
       // do nothing
-      /*
-      Serial.println("No card detected, switching to NES mode for testing");
-      consoleType = NES;  // debug testing when no board is plugged in
-      */
       break;
 
     default:
       break;
   }
-
-
-  /*  // reference from original demo sketch
-
-
-  //== PS4 Dpad UP button = 0x01 ==//
-  if (ctl->dpad() == 0x01) {
-    // code for when dpad up button is pushed
-    digitalWrite(out_Dpad_Up, LOW);
-  }
-  if (ctl->dpad() != 0x01) {
-    // code for when dpad up button is released
-    digitalWrite(out_Dpad_Up, HIGH);
-  }
-
-  //==PS4 Dpad DOWN button = 0x02==//
-  if (ctl->dpad() == 0x02) {
-    // code for when dpad down button is pushed
-    digitalWrite(out_Dpad_Down, LOW);
-  }
-  if (ctl->dpad() != 0x02) {
-    // code for when dpad down button is released
-    digitalWrite(out_Dpad_Down, HIGH);
-  }
-
-  //== PS4 Dpad LEFT button = 0x08 ==//
-  if (ctl->dpad() == 0x08) {
-    // code for when dpad left button is pushed
-    digitalWrite(out_Dpad_Left, LOW);
-  }
-  if (ctl->dpad() != 0x08) {
-    // code for when dpad left button is released
-    digitalWrite(out_Dpad_Left, HIGH);
-  }
-
-  //== PS4 Dpad RIGHT button = 0x04 ==//
-  if (ctl->dpad() == 0x04) {
-    // code for when dpad right button is pushed
-    digitalWrite(out_Dpad_Right, LOW);
-  }
-  if (ctl->dpad() != 0x04) {
-    // code for when dpad right button is released
-    digitalWrite(out_Dpad_Right, HIGH);
-  }
-
-  //== PS4 X button = 0x0001 ==//
-  if (ctl->buttons() == 0x0001) {
-    // code for when X button is pushed
-    digitalWrite(out_Button_X, LOW);
-  }
-  if (ctl->buttons() != 0x0001) {
-    // code for when X button is released
-    digitalWrite(out_Button_X, HIGH);
-  }
-
-  //== PS4 Square button = 0x0004 ==//
-  if (ctl->buttons() == 0x0004) {
-    // code for when square button is pushed
-    digitalWrite(out_Button_Square, LOW);
-  }
-  if (ctl->buttons() != 0x0004) {
-    // code for when square button is released
-    digitalWrite(out_Button_Square, HIGH);
-  }
-
-  //== PS4 Triangle button = 0x0008 ==//
-  if (ctl->buttons() == 0x0008) {
-    // code for when triangle button is pushed
-    digitalWrite(out_Button_Triangle, LOW);
-  }
-  if (ctl->buttons() != 0x0008) {
-    // code for when triangle button is released
-    digitalWrite(out_Button_Triangle, HIGH);
-  }
-
-  //== PS4 Circle button = 0x0002 ==//
-  if (ctl->buttons() == 0x0002) {
-    // code for when circle button is pushed
-    digitalWrite(out_Button_Circle, LOW);
-  }
-  if (ctl->buttons() != 0x0002) {
-    // code for when circle button is released
-    digitalWrite(out_Button_Circle, HIGH);
-  }
-
-  //== PS4 R1 trigger button = 0x0020 ==//
-  if (ctl->buttons() == 0x0020) {
-    // code for when R1 button is pushed
-  }
-  if (ctl->buttons() != 0x0020) {
-    // code for when R1 button is released
-  }
-
-  //== PS4 R2 trigger button = 0x0080 ==//
-  if (ctl->buttons() == 0x0080) {
-    // code for when R2 button is pushed
-  }
-  if (ctl->buttons() != 0x0080) {
-    // code for when R2 button is released
-  }
-
-  //== PS4 L1 trigger button = 0x0010 ==//
-  if (ctl->buttons() == 0x0010) {
-    // code for when L1 button is pushed
-  }
-  if (ctl->buttons() != 0x0010) {
-    // code for when L1 button is released
-  }
-
-  //== PS4 L2 trigger button = 0x0040 ==//
-  if (ctl->buttons() == 0x0040) {
-    // code for when L2 button is pushed
-  }
-  if (ctl->buttons() != 0x0040) {
-    // code for when L2 button is released
-  }
-
-  //== LEFT JOYSTICK - UP ==//
-  if (ctl->axisY() <= -25) {
-    // code for when left joystick is pushed up
-  }
-
-  //== LEFT JOYSTICK - DOWN ==//
-  if (ctl->axisY() >= 25) {
-    // code for when left joystick is pushed down
-  }
-
-  //== LEFT JOYSTICK - LEFT ==//
-  if (ctl->axisX() <= -25) {
-    // code for when left joystick is pushed left
-  }
-
-  //== LEFT JOYSTICK - RIGHT ==//
-  if (ctl->axisX() >= 25) {
-    // code for when left joystick is pushed right
-  }
-
-  //== LEFT JOYSTICK DEADZONE ==//
-  if (ctl->axisY() > -25 && ctl->axisY() < 25 && ctl->axisX() > -25 && ctl->axisX() < 25) {
-    // code for when left joystick is at idle
-  }
-
-  //== RIGHT JOYSTICK - X AXIS ==//
-  if (ctl->axisRX()) {
-    // code for when right joystick moves along x-axis
-  }
-
-  //== RIGHT JOYSTICK - Y AXIS ==//
-  if (ctl->axisRY()) {
-    // code for when right joystick moves along y-axis
-  }
-  */
 }
 
 void processControllers() {
@@ -457,12 +295,8 @@ void processControllers() {
   }
 }
 
-
-
-// Arduino loop function. Runs in CPU 1.
 void loop() {
-  // This call fetches all the controllers' data.
-  // Call this function in your main loop.
+  // This call fetches all the controller data.
   bool dataUpdated = BP32.update();
   if (dataUpdated)
     processControllers();
@@ -472,6 +306,5 @@ void loop() {
   // If your main loop doesn't have one, just add a simple `vTaskDelay(1)`.
   // Detailed info here:
   // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
-
   vTaskDelay(1);
 }
